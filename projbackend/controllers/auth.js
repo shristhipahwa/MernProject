@@ -28,6 +28,7 @@ exports.signup = (req, res) => {
 
 exports.signin = (req, res) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(422).json({
@@ -36,8 +37,8 @@ exports.signin = (req, res) => {
   }
 
   User.findOne({ email }, (err, user) => {
-    if (err) {
-      return res.status(400).res.json({
+    if (err || !user) {
+      return res.status(400).json({
         error: "USER email does not exist",
       });
     }
@@ -52,12 +53,13 @@ exports.signin = (req, res) => {
     res.cookie("token", token, { expire: new Date() + 9999 });
     //send response to front end
     const { _id, name, email, role } = user;
-    return res.josn({ token, user: { _id, name, email, role } });
+    return res.json({ token, user: { _id, name, email, role } });
   });
 };
 
 exports.signout = (req, res) => {
+  res.clearCookie("token");
   res.json({
-    message: "User signout",
+    message: "User signout successfully",
   });
 };
